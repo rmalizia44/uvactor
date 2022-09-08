@@ -1,5 +1,4 @@
 #include "context-uv.hpp"
-#include <cassert>
 #include <cstdio>
 
 class EvtText: public EventType<0> {
