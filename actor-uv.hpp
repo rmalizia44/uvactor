@@ -50,6 +50,7 @@ public:
 	uint64_t reactive_time() const noexcept override {
 		return static_cast<uint64_t>(_react_time_total / 1000000);
 	}
+	// thread-safe
 	void send(EventPtr event, uint32_t delay) override {
 		LOG_DEBUG("ActorUV::send() type=%u [%p]", event->type, this);
 		uint64_t t = timestamp() + delay;
@@ -110,7 +111,6 @@ private:
 		_async.data = new SharedPtr(this->shared_from_this());
 		_timer.data = new SharedPtr(this->shared_from_this());
 		_queue.set_open(true);
-		//notify();
 	}
 	void on_stop() {
 		LOG_DEBUG("ActorUV::on_stop() [%p]", this);
