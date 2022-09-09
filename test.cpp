@@ -1,15 +1,6 @@
 #include "context-uv.hpp"
-#include <cstdio>
-
-class EvtText: public EventType<0> {
-public:
-	template<typename... Ts>
-	explicit EvtText(Ts&&... ts) {
-		snprintf(text, sizeof(text), std::forward<Ts>(ts)...);
-	}
-	virtual void dump(Writer& writer) const override {}
-	char text[256];
-};
+#include "common-events.hpp"
+#include "log-reactor.hpp"
 
 class EvtTest: public EventType<1> {
 public:
@@ -18,38 +9,9 @@ public:
 	int e;
 };
 
-class EvtExit: public EventType<2> {
-public:
-	virtual void dump(Writer& writer) const override {}
-};
-
 class EvtReset: public EventType<3> {
 public:
 	virtual void dump(Writer& writer) const override {}
-};
-
-class ReactorLogger: public Reactor {
-public:
-	explicit ReactorLogger(SelfPtr self): _self(self) {
-		setbuf(stdout, nullptr);
-	}
-	void dump(Writer& writer) const override {}
-	void react(const EventPtr& event, uint64_t timestamp) override {
-		switch(event->type) {
-			case EvtText::TYPE:
-				printf("[L] %s (%llu)\n", event->as<EvtText>().text, (long long unsigned int)timestamp);
-				break;
-			case EvtExit::TYPE:
-				printf("[L] exit (%llu)\n", (long long unsigned int)timestamp);
-				_self->reset();
-				break;
-			default:
-				printf("[L] unknown<%u> (%llu)\n", event->type, (long long unsigned int)timestamp);
-				break;
-		}
-	}
-private:
-	SelfPtr _self;
 };
 
 class ReactorTest: public Reactor {
@@ -60,18 +22,18 @@ public:
 		switch(event->type) {
 			case EvtTest::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: %i (%llu)", _n, event->as<EvtTest>().e, (long long unsigned int)timestamp)
+					std::make_shared<EvtLog>("%i: %i (%llu)", _n, event->as<EvtTest>().e, (long long unsigned int)timestamp)
 				);
 				break;
 			case EvtExit::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: exit (%llu)", _n, (long long unsigned int)timestamp)
+					std::make_shared<EvtLog>("%i: exit (%llu)", _n, (long long unsigned int)timestamp)
 				);
 				_self->reset();
 				break;
 			case EvtReset::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: reset (%llu)", _n, (long long unsigned int)timestamp)
+					std::make_shared<EvtLog>("%i: reset (%llu)", _n, (long long unsigned int)timestamp)
 				);
 				_self->reset(
 					std::unique_ptr<Reactor>(
@@ -81,7 +43,7 @@ public:
 				break;
 			default:
 				_logger->send(
-					std::make_shared<EvtText>("%i: unknown<%u> (%llu)", _n, event->type, (long long unsigned int)timestamp)
+					std::make_shared<EvtLog>("%i: unknown<%u> (%llu)", _n, event->type, (long long unsigned int)timestamp)
 				);
 				break;
 		}
@@ -109,7 +71,7 @@ int main() {
 	logger = contexts[0].spawn();
 	logger->reset(
 		std::unique_ptr<Reactor>(
-			new ReactorLogger(logger)
+			new LogReactor(logger)
 		)
 	);
 	logger->send(
