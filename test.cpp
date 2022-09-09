@@ -147,7 +147,7 @@ int main() {
 		}
 		actors[i]->send(
 			std::make_shared<EvtExit>(),
-			NUM_EVENTS * TIME_STEP
+			(NUM_EVENTS) * TIME_STEP
 		);
 	}
 	
@@ -157,5 +157,11 @@ int main() {
 	for(auto& ctx : contexts) {
 		ctx.wait();
 	}
+	
+	printf("logger t=%llu\n", logger->reactive_time());
+	for(unsigned i = 0; i < NUM_ACTORS; ++i) {
+		printf("actor[%u] t=%llu\n", i, actors[i]->reactive_time());
+	}
+	
 	return 0;
 }
