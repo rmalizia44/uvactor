@@ -15,7 +15,7 @@ public:
 	void react(const EventPtr& event, uint64_t timestamp) override {
 		switch(event->type) {
 			case EvtLog::TYPE:
-				printf("[L] %s (%llu)\n", event->as<EvtLog>().text, (long long unsigned int)timestamp);
+				printf("%s (%llu)\n", event->as<EvtLog>().text, (long long unsigned int)timestamp);
 				break;
 			case EvtExit::TYPE:
 				printf("[L] exit (%llu)\n", (long long unsigned int)timestamp);
