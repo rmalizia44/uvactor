@@ -37,14 +37,14 @@ public:
 	void react(const EventPtr& event, uint64_t timestamp) override {
 		switch(event->type) {
 			case EvtText::TYPE:
-				printf("[L] %s (%llu)\n", event->as<EvtText>().text, timestamp);
+				printf("[L] %s (%llu)\n", event->as<EvtText>().text, (long long unsigned int)timestamp);
 				break;
 			case EvtExit::TYPE:
-				printf("[L] exit (%llu)\n", timestamp);
+				printf("[L] exit (%llu)\n", (long long unsigned int)timestamp);
 				_self->reset();
 				break;
 			default:
-				printf("[L] unknown<%u> (%llu)\n", event->type, timestamp);
+				printf("[L] unknown<%u> (%llu)\n", event->type, (long long unsigned int)timestamp);
 				break;
 		}
 	}
@@ -60,18 +60,18 @@ public:
 		switch(event->type) {
 			case EvtTest::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: %i (%llu)", _n, event->as<EvtTest>().e, timestamp)
+					std::make_shared<EvtText>("%i: %i (%llu)", _n, event->as<EvtTest>().e, (long long unsigned int)timestamp)
 				);
 				break;
 			case EvtExit::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: exit (%llu)", _n, timestamp)
+					std::make_shared<EvtText>("%i: exit (%llu)", _n, (long long unsigned int)timestamp)
 				);
 				_self->reset();
 				break;
 			case EvtReset::TYPE:
 				_logger->send(
-					std::make_shared<EvtText>("%i: reset (%llu)", _n, timestamp)
+					std::make_shared<EvtText>("%i: reset (%llu)", _n, (long long unsigned int)timestamp)
 				);
 				_self->reset(
 					std::unique_ptr<Reactor>(
@@ -81,7 +81,7 @@ public:
 				break;
 			default:
 				_logger->send(
-					std::make_shared<EvtText>("%i: unknown<%u> (%llu)", _n, event->type, timestamp)
+					std::make_shared<EvtText>("%i: unknown<%u> (%llu)", _n, event->type, (long long unsigned int)timestamp)
 				);
 				break;
 		}
@@ -158,9 +158,9 @@ int main() {
 		ctx.wait();
 	}
 	
-	printf("logger t=%llu\n", logger->reactive_time());
+	printf("logger t=%llu\n", (long long unsigned int)logger->reactive_time());
 	for(unsigned i = 0; i < NUM_ACTORS; ++i) {
-		printf("actor[%u] t=%llu\n", i, actors[i]->reactive_time());
+		printf("actor[%u] t=%llu\n", i, (long long unsigned int)actors[i]->reactive_time());
 	}
 	
 	return 0;

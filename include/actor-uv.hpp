@@ -55,12 +55,12 @@ public:
 		LOG_DEBUG("ActorUV::send() type=%u [%p]", event->type, this);
 		uint64_t t = timestamp() + delay;
 		if(delay > 0) {
-			LOG_DEBUG("\tadd waiting timestamp=%llu", t);
+			LOG_DEBUG("\tadd waiting timestamp=%llu", (long long unsigned int)t);
 			if(_queue.add_waiting(std::move(event), t)) {
 				notify();
 			}
 		} else {
-			LOG_DEBUG("\tadd ready timestamp=%llu", t);
+			LOG_DEBUG("\tadd ready timestamp=%llu", (long long unsigned int)t);
 			if(_queue.add_ready(std::move(event), t)) {
 				notify();
 			}
