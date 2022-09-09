@@ -8,5 +8,10 @@ public:
 	virtual void dump(Writer& writer) const override {}
 };
 
+class EvtUpdate: public EventType<0x2E5FAF24> {
+public:
+	virtual void dump(Writer& writer) const override {}
+};
+
 
 #endif

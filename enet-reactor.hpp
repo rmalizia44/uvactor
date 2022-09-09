@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstdio>
 #include "reactor.hpp"
+#include "common-events.hpp"
 #include "network-events.hpp"
 
 class ENetException: public std::exception {
@@ -39,6 +40,7 @@ class ENetReactor: public Reactor {
 	enum {
 		INCOMING_BANDWIDTH = 0,
 		OUTGOING_BANDWIDTH = 0,
+		UPDATE_TIME = 20,
 	};
 	enum { // same as godot
 		CHANNEL_CONFIG,
@@ -73,8 +75,12 @@ public:
 			case EvtKick::TYPE:
 				on_kick(event->as<EvtKick>(), timestamp);
 				break;
-			case EvtPoll::TYPE:
-				on_poll(event->as<EvtPoll>(), timestamp);
+			case EvtUpdate::TYPE:
+				on_update(event->as<EvtUpdate>(), timestamp);
+				_self->send(event, UPDATE_TIME);
+				break;
+			case EvtExit::TYPE:
+				_self->reset();
 				break;
 			default:
 				break;
@@ -100,7 +106,7 @@ private:
 		if(!_enet_host) {
 			throw ENetException("can't listen: can't create enet host");
 		}
-		//poll_init();
+		_self->send(std::make_shared<EvtUpdate>());
 	}
 	void on_connect(const EvtConnect& event, uint32_t timestamp) {
 		if(_enet_host) {
@@ -122,7 +128,7 @@ private:
 		if(enet_host_connect(_enet_host.get(), &addr, CHANNEL_COUNT, 0) == nullptr) {
 			throw ENetException("can't connect: failed to connect peer");
 		}
-		//poll_init();
+		_self->send(std::make_shared<EvtUpdate>());
 	}
 	void on_send(const EvtSend& event, uint32_t timestamp) {
 		if(!_enet_host) {
@@ -152,7 +158,7 @@ private:
 		enet_peer_disconnect_later(&_enet_host->peers[event.dst], 0);
 		//poll_restart(true);
 	}
-	void on_poll(const EvtPoll& event, uint32_t timestamp) {
+	void on_update(const EvtUpdate& event, uint32_t timestamp) {
 		if(!_enet_host) {
 			throw ENetException("can't poll: enet host not initialized");
 		}

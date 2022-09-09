@@ -12,6 +12,7 @@ public:
 	uint16_t port;
 	uint16_t max_peers;
 };
+
 class EvtConnect: public EventType<0x16A49E5A> {
 public:
 	explicit EvtConnect(std::string&& _host, uint16_t _port): host(std::move(_host)), port(_port) {}
@@ -19,6 +20,7 @@ public:
 	std::string host;
 	uint16_t port;
 };
+
 class EvtSend: public EventType<0x7C73679C> {
 public:
 	explicit EvtSend(uint32_t _dst, std::string&& _buf, bool _reliable): dst(_dst), buf(std::move(_buf)), reliable(_reliable) {}
@@ -37,29 +39,24 @@ public:
 
 class EvtConnected: public EventType<0x446F3565> {
 public:
-	explicit EvtConnected(uint16_t _id): id(_id) {}
+	explicit EvtConnected(uint16_t _id): src(_id) {}
 	virtual void dump(Writer& writer) const override {}
-	uint16_t id;
+	uint16_t src;
 };
+
 class EvtDisconnected: public EventType<0xBF733E42> {
 public:
-	explicit EvtDisconnected(uint16_t _id): id(_id) {}
+	explicit EvtDisconnected(uint16_t _id): src(_id) {}
 	virtual void dump(Writer& writer) const override {}
-	uint16_t id;
+	uint16_t src;
 };
+
 class EvtReceived: public EventType<0xCFB8E7BF> {
 public:
-	explicit EvtReceived(uint16_t _id, std::string&& _data): id(_id), data(std::move(_data)) {}
+	explicit EvtReceived(uint16_t _id, std::string&& _data): src(_id), data(std::move(_data)) {}
 	virtual void dump(Writer& writer) const override {}
-	uint16_t id;
+	uint16_t src;
 	std::string data;
 };
-
-class EvtPoll: public EventType<0x5FBCA714> {
-public:
-	virtual void dump(Writer& writer) const override {}
-};
-
-
 
 #endif
