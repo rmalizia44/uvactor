@@ -44,11 +44,11 @@ public:
 	~ActorUV() noexcept {
 		LOG_DEBUG("ActorUV::~ActorUV() [%p]", this);
 	}
-	uint64_t total_time() const noexcept {
-		return static_cast<uint64_t>(_react_time_total / 1000000);
-	}
 	uint64_t timestamp() const noexcept {
 		return static_cast<uint64_t>(uv_now(_loop.get()) - _ini_time);
+	}
+	uint64_t reactive_time() const noexcept override {
+		return static_cast<uint64_t>(_react_time_total / 1000000);
 	}
 	void send(EventPtr event, uint32_t delay) override {
 		LOG_DEBUG("ActorUV::send() type=%u [%p]", event->type, this);
@@ -60,8 +60,9 @@ public:
 			}
 		} else {
 			LOG_DEBUG("\tadd ready timestamp=%llu", t);
-			_queue.add_ready(std::move(event), t);
-			notify();
+			if(_queue.add_ready(std::move(event), t)) {
+				notify();
+			}
 		}
 	}
 	void reset(ReactorPtr&& state) override {
@@ -69,9 +70,11 @@ public:
 		bool was_running = _stateful.is_running();
 		_stateful.set(std::move(state));
 		if(!was_running && _stateful.is_running()) {
+			LOG_DEBUG("\tstarting");
 			on_start();
 		}
 		if(was_running && !_stateful.is_running()) {
+			LOG_DEBUG("\tstopping");
 			on_stop();
 		}
 	}
@@ -106,10 +109,12 @@ private:
 		UV_INVOKE(uv_timer_init(_loop.get(), &_timer));
 		_async.data = new SharedPtr(this->shared_from_this());
 		_timer.data = new SharedPtr(this->shared_from_this());
+		_queue.set_open(true);
 		//notify();
 	}
 	void on_stop() {
 		LOG_DEBUG("ActorUV::on_stop() [%p]", this);
+		_queue.set_open(false);
 		uv_close(reinterpret_cast<uv_handle_t*>(&_async), close_callback);
 		uv_close(reinterpret_cast<uv_handle_t*>(&_timer), close_callback);
 	}
@@ -124,8 +129,10 @@ private:
 		const uint32_t next_timestamp = _queue.update(cur_timestamp);
 		if(next_timestamp > cur_timestamp) {
 			const uint32_t delay = next_timestamp - cur_timestamp;
+			LOG_DEBUG("\ttimer start delay=%u", delay);
 			UV_INVOKE(uv_timer_start(&_timer, timer_callback, delay, 0));
 		} else {
+			LOG_DEBUG("\ttimer stop");
 			UV_INVOKE(uv_timer_stop(&_timer));
 		}
 		trigger_profile();

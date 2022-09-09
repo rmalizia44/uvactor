@@ -14,13 +14,34 @@ public:
 	using EventVector = std::vector<EventPair>;
 	using EventList = std::list<EventPair>;
 	// thread-safe
-	void add_ready(EventPtr&& event, uint64_t timestamp) {
+	bool get_open() const {
 		std::lock_guard<std::mutex> lock(_mutex);
-		_ready.emplace_back(std::move(event), timestamp);
+		return _open;
 	}
 	// thread-safe
+	void set_open(bool value) {
+		std::lock_guard<std::mutex> lock(_mutex);
+		if(_open != value) {
+			_waiting.clear();
+			_ready.clear();
+			_open = value;
+		}
+	}
+	// thread-safe
+	bool add_ready(EventPtr&& event, uint64_t timestamp) {
+		std::lock_guard<std::mutex> lock(_mutex);
+		if(_open) {
+			_ready.emplace_back(std::move(event), timestamp);
+		}
+		return _open;
+	}
+	// thread-safe
+	// returns if open and inserted first
 	bool add_waiting(EventPtr&& event, uint64_t timestamp) {
 		std::lock_guard<std::mutex> lock(_mutex);
+		if(!_open) {
+			return false;
+		}
 		if(_waiting.empty() || timestamp < _waiting.front().second) {
 			_waiting.emplace_front(std::move(event), timestamp);
 			return true;
@@ -58,10 +79,10 @@ public:
 		return next_timeout;
 	}
 private:
-	std::mutex _mutex;
+	mutable std::mutex _mutex;
 	EventVector _ready;
 	EventList _waiting;
-	
+	bool _open = false;
 };
 
 #endif
