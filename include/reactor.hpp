@@ -6,13 +6,14 @@
 
 class Reactor {
 public:
+	using UniquePtr = std::unique_ptr<Reactor>;
 	using EventPtr = Event::SharedPtr;
 	using ActorPtr = Actor::SharedPtr;
 	using SelfPtr = ActorSelf::SharedPtr;
 	
 	template<typename T, typename... Ts>
-	static std::unique_ptr<Reactor> make(Ts&&... ts) {
-		return std::unique_ptr<Reactor>(new T(std::forward<Ts>(ts)...));
+	static UniquePtr make(Ts&&... ts) {
+		return UniquePtr(new T(std::forward<Ts>(ts)...));
 	}
 	
 	virtual ~Reactor() = default;
