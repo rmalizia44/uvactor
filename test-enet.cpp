@@ -128,7 +128,7 @@ enum {
 int main() {
 	printf("initializing\n");
 	
-	std::vector<ContextUV> contexts(NUM_THREADS);
+	ContextUV contexts[NUM_THREADS];
 	unsigned idx = 0;
 	
 	ActorSelf::SharedPtr logger = contexts[(idx++) % NUM_THREADS].spawn();
