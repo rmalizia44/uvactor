@@ -9,6 +9,11 @@ class Event {
 public:
 	using SharedPtr = std::shared_ptr<const Event>;
 	
+	template<typename T, typename... Ts>
+	static SharedPtr make(Ts&&... ts) {
+		return std::make_shared<T>(std::forward<Ts>(ts)...);
+	}
+	
 	explicit Event(uint32_t _type) noexcept: type(_type) {}
 	virtual ~Event() = default;
 	
