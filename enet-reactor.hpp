@@ -40,7 +40,6 @@ class ENetReactor: public Reactor {
 	enum {
 		INCOMING_BANDWIDTH = 0,
 		OUTGOING_BANDWIDTH = 0,
-		UPDATE_TIME = 50,
 	};
 	enum { // same as godot
 		CHANNEL_CONFIG,
@@ -77,7 +76,6 @@ public:
 				break;
 			case EvtUpdate::TYPE:
 				on_update(event->as<EvtUpdate>(), timestamp);
-				_self->send(event, UPDATE_TIME);
 				break;
 			case EvtExit::TYPE:
 				_self->reset();
@@ -86,7 +84,7 @@ public:
 				break;
 		}
 	}
-private:
+protected:
 	void on_listen(const EvtListen& event, uint32_t timestamp) {
 		if(_enet_host) {
 			throw ENetException("can't listen: enet host already initialized");
@@ -106,7 +104,6 @@ private:
 		if(!_enet_host) {
 			throw ENetException("can't listen: can't create enet host");
 		}
-		_self->send(std::make_shared<EvtUpdate>());
 	}
 	void on_connect(const EvtConnect& event, uint32_t timestamp) {
 		if(_enet_host) {
@@ -128,7 +125,6 @@ private:
 		if(enet_host_connect(_enet_host.get(), &addr, CHANNEL_COUNT, 0) == nullptr) {
 			throw ENetException("can't connect: failed to connect peer");
 		}
-		_self->send(std::make_shared<EvtUpdate>());
 	}
 	void on_send(const EvtSend& event, uint32_t timestamp) {
 		if(!_enet_host) {
@@ -146,7 +142,6 @@ private:
 			throw ENetException("can't send: can't send packet to peer");
 		}
 		packet.release();
-		//poll_restart(true);
 	}
 	void on_kick(const EvtKick& event, uint32_t timestamp) {
 		if(!_enet_host) {
@@ -156,7 +151,6 @@ private:
 			throw ENetException("can't kick: invalid id: %u", event.dst);
 		}
 		enet_peer_disconnect_later(&_enet_host->peers[event.dst], 0);
-		//poll_restart(true);
 	}
 	void on_update(const EvtUpdate& event, uint32_t timestamp) {
 		if(!_enet_host) {
@@ -195,7 +189,6 @@ private:
 		if(ec < 0) {
 			throw ENetException("can't poll: enet service error");
 		}
-		//poll_restart(false);
 	}
 	
 	SelfPtr _self;

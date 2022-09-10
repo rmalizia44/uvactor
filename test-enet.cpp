@@ -1,5 +1,5 @@
 #include "context-uv.hpp"
-#include "enet-reactor.hpp"
+#include "enet-reactor-auto.hpp"
 #include "log-reactor.hpp"
 
 #include <ctime>
@@ -120,7 +120,7 @@ private:
 
 enum {
 	NUM_THREADS = 8,
-	NUM_CLIENTS = 1000,
+	NUM_CLIENTS = 1,
 	APP_PORT = 8080,
 };
 
@@ -140,7 +140,7 @@ int main() {
 		Reactor::make<LogReactor>(logger)
 	);
 	enet_server->reset(
-		Reactor::make<ENetReactor>(enet_server, echo_server)
+		Reactor::make<ENetReactorAuto>(enet_server, echo_server)
 	);
 	echo_server->reset(
 		Reactor::make<EchoReactor>(echo_server, enet_server, logger)
@@ -150,7 +150,7 @@ int main() {
 		ActorSelf::SharedPtr enet_client = contexts[(idx++) % NUM_THREADS].spawn();
 		ActorSelf::SharedPtr time_client = contexts[(idx++) % NUM_THREADS].spawn();
 		enet_client->reset(
-			Reactor::make<ENetReactor>(enet_client, time_client)
+			Reactor::make<ENetReactorAuto>(enet_client, time_client)
 		);
 		time_client->reset(
 			Reactor::make<TimeReactor>(time_client, enet_client, logger)
