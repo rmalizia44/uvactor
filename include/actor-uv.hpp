@@ -13,18 +13,21 @@
 }*/
 
 class ActorUV: public ActorSelf, public std::enable_shared_from_this<ActorUV> {
-	using SharedPtr = std::shared_ptr<ActorUV>;
 	using ReactorPtr = ActorSelf::ReactorPtr;
 	using EventPtr = Event::SharedPtr;
 	using EventPair = std::pair<EventPtr, uint64_t>;
 	using EventVector = std::vector<EventPair>;
 public:
+	using SharedPtr = std::shared_ptr<ActorUV>;
 	explicit ActorUV(std::shared_ptr<uv_loop_t> loop): _loop(std::move(loop)) {
 		LOG_DEBUG("ActorUV::ActorUV() [%p]", this);
 		_ini_time = uv_now(_loop.get());
 	}
 	~ActorUV() noexcept {
 		LOG_DEBUG("ActorUV::~ActorUV() [%p]", this);
+	}
+	std::shared_ptr<uv_loop_t> loop() {
+		return _loop;
 	}
 	uint64_t timestamp() const noexcept {
 		return static_cast<uint64_t>(uv_now(_loop.get()) - _ini_time);
@@ -33,7 +36,7 @@ public:
 		return static_cast<uint64_t>(_react_time_total / 1000000);
 	}
 	// thread-safe
-	void send(EventPtr event, uint32_t delay) override {
+	void send(EventPtr event, uint32_t delay = 0) override {
 		LOG_DEBUG("ActorUV::send() type=%u [%p]", event->type, this);
 		uint64_t t = timestamp() + delay;
 		if(delay > 0) {

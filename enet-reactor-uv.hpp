@@ -1,7 +1,7 @@
 #ifndef ENET_REACTOR_UV_HPP
 #define ENET_REACTOR_UV_HPP
 
-#include "uv.hpp"
+#include "actor-uv.hpp"
 #include "enet-reactor.hpp"
 
 class ENetReactorUV: public ENetReactor {
@@ -15,7 +15,7 @@ class ENetReactorUV: public ENetReactor {
 		delete reinterpret_cast<uv_poll_t*>(handle);
 	}
 public:
-	explicit ENetReactorUV(SelfPtr self, ActorPtr observer, std::shared_ptr<uv_loop_t> loop): ENetReactor(self, observer), _loop(std::move(loop)) {
+	explicit ENetReactorUV(ActorUV::SharedPtr self, ActorPtr observer): ENetReactor(self, observer), _loop(self->loop()) {
 	}
 	~ENetReactorUV() noexcept {
 		poll_close();

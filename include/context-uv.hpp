@@ -11,7 +11,7 @@ public:
 	~ContextUV() {
 		// TODO: assert thread terminanted
 	}
-	ActorSelf::SharedPtr spawn() {
+	ActorUV::SharedPtr spawn() {
 		return std::make_shared<ActorUV>(_loop);
 	}
 	std::shared_ptr<uv_loop_t> loop() {
