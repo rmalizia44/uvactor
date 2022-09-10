@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include "common-events.hpp"
-#include "log-events.hpp"
 #include "reactor.hpp"
 
 class LogReactor: public Reactor {

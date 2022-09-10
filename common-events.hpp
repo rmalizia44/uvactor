@@ -13,5 +13,14 @@ public:
 	virtual void dump(Writer& writer) const override {}
 };
 
+class EvtLog: public EventType<0x34ABEFEF> {
+public:
+	template<typename... Ts>
+	explicit EvtLog(Ts&&... ts) {
+		snprintf(text, sizeof(text), std::forward<Ts>(ts)...);
+	}
+	virtual void dump(Writer& writer) const override {}
+	char text[256];
+};
 
 #endif
