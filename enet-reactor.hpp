@@ -40,7 +40,7 @@ class ENetReactor: public Reactor {
 	enum {
 		INCOMING_BANDWIDTH = 0,
 		OUTGOING_BANDWIDTH = 0,
-		UPDATE_TIME = 20,
+		UPDATE_TIME = 50,
 	};
 	enum { // same as godot
 		CHANNEL_CONFIG,
