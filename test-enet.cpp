@@ -1,5 +1,6 @@
 #include "context-uv.hpp"
 #include "enet-reactor-auto.hpp"
+#include "enet-reactor-uv.hpp"
 #include "log-reactor.hpp"
 
 #include <ctime>
@@ -120,7 +121,7 @@ private:
 
 enum {
 	NUM_THREADS = 8,
-	NUM_CLIENTS = 1,
+	NUM_CLIENTS = 100,
 	APP_PORT = 8080,
 };
 
@@ -131,7 +132,9 @@ int main() {
 	unsigned idx = 0;
 	
 	ActorSelf::SharedPtr logger = contexts[(idx++) % NUM_THREADS].spawn();
-	ActorSelf::SharedPtr enet_server = contexts[(idx++) % NUM_THREADS].spawn();
+	auto idx_enet_server = (idx++) % NUM_THREADS;
+	auto loop_enet_server = contexts[idx_enet_server].loop();
+	ActorSelf::SharedPtr enet_server = contexts[idx_enet_server].spawn();
 	ActorSelf::SharedPtr echo_server = contexts[(idx++) % NUM_THREADS].spawn();
 	std::vector<ActorSelf::SharedPtr> enet_clients;
 	std::vector<ActorSelf::SharedPtr> time_clients;
@@ -140,17 +143,19 @@ int main() {
 		Reactor::make<LogReactor>(logger)
 	);
 	enet_server->reset(
-		Reactor::make<ENetReactorAuto>(enet_server, echo_server)
+		Reactor::make<ENetReactorUV>(enet_server, echo_server, loop_enet_server)
 	);
 	echo_server->reset(
 		Reactor::make<EchoReactor>(echo_server, enet_server, logger)
 	);
 	
 	for(unsigned i = 0; i < NUM_CLIENTS; ++i) {
-		ActorSelf::SharedPtr enet_client = contexts[(idx++) % NUM_THREADS].spawn();
+		auto idx_enet_client = (idx++) % NUM_THREADS;
+		auto loop_enet_client = contexts[idx_enet_client].loop();
+		ActorSelf::SharedPtr enet_client = contexts[idx_enet_client].spawn();
 		ActorSelf::SharedPtr time_client = contexts[(idx++) % NUM_THREADS].spawn();
 		enet_client->reset(
-			Reactor::make<ENetReactorAuto>(enet_client, time_client)
+			Reactor::make<ENetReactorUV>(enet_client, time_client, loop_enet_client)
 		);
 		time_client->reset(
 			Reactor::make<TimeReactor>(time_client, enet_client, logger)

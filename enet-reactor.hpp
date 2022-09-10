@@ -153,8 +153,11 @@ protected:
 		enet_peer_disconnect_later(&_enet_host->peers[event.dst], 0);
 	}
 	void on_update(const EvtUpdate& event, uint32_t timestamp) {
+		update();
+	}
+	void update() {
 		if(!_enet_host) {
-			throw ENetException("can't poll: enet host not initialized");
+			throw ENetException("can't update: enet host not initialized");
 		}
 		ENetEvent enet_event;
 		int ec;

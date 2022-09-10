@@ -1,34 +1,16 @@
 #ifndef ACTOR_UV_HPP
 #define ACTOR_UV_HPP
 
-#include <uv.h>
-#include <exception>
+#include "uv.hpp"
 #include "actor.hpp"
 #include "queue.hpp"
 #include "stateful.hpp"
-
-class ExceptionUV: public std::exception {
-public:
-	explicit ExceptionUV(int ec) noexcept: _ec(ec) {}
-	const char* what() const noexcept override {
-		return uv_strerror(_ec);
-	}
-private:
-	const int _ec;
-};
 
 #define LOG_DEBUG(...) /*{\
 	printf("[%s:%i] ", __FILE__, __LINE__);\
 	printf(__VA_ARGS__);\
 	printf("\n");\
 }*/
-
-#define UV_INVOKE(_expr) {\
-	int _ec = (_expr);\
-	if(_ec < 0) {\
-		throw ExceptionUV(_ec);\
-	}\
-}
 
 class ActorUV: public ActorSelf, public std::enable_shared_from_this<ActorUV> {
 	using SharedPtr = std::shared_ptr<ActorUV>;
